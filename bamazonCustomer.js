@@ -61,7 +61,7 @@ function orderProducts() {
         }  
         ])
     .then(function(answer) {
-        console.log("If no error from the initial inquirer prompt, then you see this statement.");
+        // console.log("If no error from the initial inquirer prompt, then you see this statement.");
 
         // var query = connection.query('SELECT * FROM products', function(err, result) {
         //     if (err) throw err;
@@ -82,15 +82,15 @@ function purchaseProducts(ID, quantity) {
         var index = ID-1; 
                 
         // console.log(result);
-        console.log(result[0]);
-        console.log(result[0].stock_quantity);
-        console.log(quantity);
+        // console.log(result[0]);
+        // console.log(result[0].stock_quantity);
+        // console.log(quantity);
 
         if (quantity <= result[0].stock_quantity) {
             // update database with remaining quantity
 
             var updated_quantity = result[0].stock_quantity - quantity; 
-            console.log(updated_quantity);
+            console.log("Updated quantity of item purchased: " + updated_quantity);
 
             connection.query(
                 "UPDATE products SET ? WHERE ?",
@@ -104,7 +104,7 @@ function purchaseProducts(ID, quantity) {
                 ],
                 function(error) {
                     // if (error) throw err;
-                    console.log("Updated quantity in stock");
+                    // console.log("Updated quantity in stock");
                 }
             );
 
