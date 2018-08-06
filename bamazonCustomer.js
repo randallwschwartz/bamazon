@@ -24,140 +24,109 @@ connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
 
-  connection.query('SELECT * FROM songs', function(err, result) {
-    if (err) throw err;
-    console.log(result);
-    // console.log(result.genre);
-  });
-  displayProducts();
+//   connection.query('SELECT * FROM products', function(err, result) {
+//     if (err) throw err;
+//     console.log(result);
+//   });
+
+    connection.query('SELECT * FROM products', function(err, res){
+        if (err) throw err;
+        console.log('=================================================');
+        console.log('=================Items in Store==================');
+        console.log('=================================================');
+
+        for(i=0;i<res.length;i++){
+            console.log('Item ID:' + res[i].item_id + ' Product Name: ' + res[i].product_name + ' Price: ' + '$' + res[i].price + '(Quantity left: ' + res[i].stock_quantity + ')')
+        }
+        console.log('=================================================');
+    });
+
+  orderProducts();
 });
 
-function displayProducts() {
-    console.log("Displaying all products in stock...\n");
-    connection.query("SELECT * FROM products", function(err, result) {
-        if (err) throw err;
-        // Log all results of the SELECT statement
-        console.log(result);
-//        connection.end();
-        orderProducts();
+
+function orderProducts() {  
+    inquirer
+        .prompt([
+        // Here we create a basic text prompt.
+        {
+            type: "input",
+            name: "productID",
+            message: "Enter the ID of the product you want to buy:",
+        },
+        {
+            type: "input",
+            name: "productQuantity",
+            message: "Enter the number of units:",
+        }  
+        ])
+    .then(function(answer) {
+        console.log("If no error from the initial inquirer prompt, then you see this statement.");
+
+        // var query = connection.query('SELECT * FROM products', function(err, result) {
+        //     if (err) throw err;
+        //     console.log(result);
+        // });
+
+        var reqID = answer.productID;
+        var reqQuantity = answer.productQuantity;
+        
+        purchaseProducts(reqID, reqQuantity);
     });
 };
 
-function orderProducts() {
-  
+function purchaseProducts(ID, quantity) {
+    connection.query('SELECT * FROM products WHERE item_id = ?', [ID], function(err, result) {
+        if (err) throw err;
 
-  inquirer
-    .prompt([
-      // Here we create a basic text prompt.
-      {
-        type: "input",
-        name: "ProductID",
-        message: "Enter the ID of the product you want to buy:",
-      },
-      {
-        type: "list",
-        name: "ProductQuantity",
-        message: "Enter the number of units:",
-      }  
-    ])
-    .then(function(inquirerResponse) {
-        console.log("If no error from the initial inquirer prompt, then you see this statement.");
-  
-        var query = connection.query('SELECT * FROM products', function(err, result) {
-            if (err) throw err;
-            console.log(result);
-        });
+        var index = ID-1; 
+                
+        // console.log(result);
+        console.log(result[0]);
+        console.log(result[0].stock_quantity);
+        console.log(quantity);
 
-        
-              
-      if (inquirerResponse.ProductQuantity > query.products.stock_quantity) {
-        console.log("Insufficient quantity of products in stock, try again.");
-        orderProducts();
-      } else {
-        // update database with remaining quantity
-        updateProducts();
+        if (quantity <= result[0].stock_quantity) {
+            // update database with remaining quantity
+            // updateProducts();
 
-        // display the total cost of the purchase
-        totalProducts();
-      }
-  
-    })
-    .catch(function(err){
-      console.log(err);
+            var updated_quantity = result[0].stock_quantity - quantity; 
+
+            connection.query(
+                "UPDATE products SET ? WHERE ?",
+                [
+                {
+                    stock_quantity: updated_quantity
+                },
+                {
+                    item_id: ID
+                }
+                ],
+                function(error) {
+                    if (error) throw err;
+                    console.log("Updated quantity in stock");
+                }
+            );
+
+
+            // display the total cost of the purchase
+            // totalProducts();
+
+            var total_cost = quantity * result[0].price;
+            console.log("Total cost of your puchase is: $" + total_cost +".");
+
+
+        } else {
+            console.log("Insufficient quantity of products in stock, try again.");
+            orderProducts();
+
+        }
+
     });
+    // .catch(function(err){
+    // console.log(err);
+    // });
 
     connection.end();
-}
-
-
-
-function updateProducts() {
-    var query = connection.query(
-        'UPDATE products SET ? WHERE ?',
-        [
-            {
-                genre: 'Alt Rock'
-            }, {
-                artist: 'Pearl Jam'
-            }
-        ], function(err, result) {
-            console.log(result.affectedRows + ' songs updated!\n');
-            deleteSong();
-        }
-    );
-};
-
-
-/// --------------------------------
-function createSong() {
-    var query = connection.query(
-        'INSERT INTO songs SET ?',
-        {
-            title: 'Hot For Teacher',
-            genre: 'Grunge',
-            artist: 'Van Halen'
-        },
-        function(err, result) {
-            console.log(result.affectedRows + ' songs inserted\n');
-            updateSong();
-        }
-    );
-};
-
-function updateSong() {
-    var query = connection.query(
-        'UPDATE songs SET ? WHERE ?',
-        [
-            {
-                genre: 'Alt Rock'
-            }, {
-                artist: 'Pearl Jam'
-            }
-        ], function(err, result) {
-            console.log(result.affectedRows + ' songs updated!\n');
-            deleteSong();
-        }
-    );
-};
-
-function deleteSong() {
-    var query = connection.query(
-        'DELETE FROM songs WHERE ?',
-        {
-            genre: 'Grunge'
-        }, function(err, result) {
-            console.log(result.affectedRows + ' songs deleted!\n');
-            readSong()
-        }
-    );
-};
-
-function readSong() {
-    console.log("Selecting all songs...\n");
-    connection.query("SELECT * FROM songs", function(err, result) {
-        if (err) throw err;
-        // Log all results of the SELECT statement
-        console.log(result);
-        connection.end();
-    });
+   
 }

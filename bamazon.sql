@@ -2,13 +2,15 @@ DROP DATABASE IF EXISTS bamazon;
 
 CREATE DATABASE bamazon;
 
+USE bamazon;
+
 CREATE TABLE products (
-  item_id INT NOT NULL,
+  item_id INT AUTO_INCREMENT NOT NULL,
   product_name VARCHAR(500) NULL,
   department_name VARCHAR(500) NULL,
   price DECIMAL(10,2) NULL,
   stock_quantity INT NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (item_id)
 );
 
 -- Creates new rows containing data in all named columns --
