@@ -88,9 +88,9 @@ function purchaseProducts(ID, quantity) {
 
         if (quantity <= result[0].stock_quantity) {
             // update database with remaining quantity
-            // updateProducts();
 
             var updated_quantity = result[0].stock_quantity - quantity; 
+            console.log(updated_quantity);
 
             connection.query(
                 "UPDATE products SET ? WHERE ?",
@@ -103,14 +103,10 @@ function purchaseProducts(ID, quantity) {
                 }
                 ],
                 function(error) {
-                    if (error) throw err;
+                    // if (error) throw err;
                     console.log("Updated quantity in stock");
                 }
             );
-
-
-            // display the total cost of the purchase
-            // totalProducts();
 
             var total_cost = quantity * result[0].price;
             console.log("Total cost of your puchase is: $" + total_cost +".");
